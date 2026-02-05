@@ -1366,6 +1366,7 @@ Int_t SBSGenericDetector::DecodeTDC( const THaEvData& evdata,
   if(fIsMC)reftime = 1000.0;
   
   Int_t edge = 0;
+  Int_t le_count = 0; Int_t te_count = 0;
   Int_t elemID=blk->GetID();
 
   for(Int_t ihit = 0; ihit < nhit; ihit++) {
@@ -1423,11 +1424,25 @@ Int_t SBSGenericDetector::DecodeTDC( const THaEvData& evdata,
       edge = tdchit[ihit].edge;
       //           std::cout << ihit << " " << evdata.GetData(d->crate, d->slot, chan, ihit) - reftime << " " << edge << std::endl;
       if (edge ==1 && ihit ==0) continue; // skip first hit if trailing edge
-      // if (fModeTDC != SBSModeTDC::kTDCSimple && edge ==0 && ihit == nhit-1)  continue; // skip last hit if leading edge
-      if( edge == 0 && ihit == nhit-1 ) continue; //skip last hit if leading edge (AJRP note: it is not possible to get into this IF block if fModeTDC is "kTDCsimple". Thus the commented statement above always evaluates false and defeats its own intended logic.)
+       if(edge ==0){
+            le_count++;
+        }else if(edge ==1){
+            te_count++;
+        }
+        //insert arbitrary large number (kbig) for missing hit if observed
+        if(le_count > te_count+1){//missing TE
+            blk->TDC()->Process(elemID,kBig, 1.);
+            te_count++;
+        }else if(le_count < te_count){//missing LE
+            blk->TDC()->Process(elemID,kBig, 0.);
+            le_count++;
+        }
+      if (fModeTDC != SBSModeTDC::kTDCSimple && edge ==0 && ihit == nhit-1)  continue; // skip last hit if leading edge
+      //if( edge == 0 && ihit == nhit-1 ) continue; //skip last hit if leading edge (AJRP note: it is not possible to get into this IF block if fModeTDC is "kTDCsimple". Thus the commented statement above always evaluates false and defeats its own intended logic.)
+    
       blk->TDC()->Process(elemID,tdchit[ihit].rawtime - reftime, edge);
     }
-  }
+  
 
   return nhit;
 }
@@ -1938,10 +1953,10 @@ Int_t SBSGenericDetector::FindGoodHit(SBSElement *blk)
     Int_t HitIndex = -1;
     Double_t GoodTimeCut = blk->TDC()->GetGoodTimeCut();
     for (Int_t ih=0;ih<nhits;ih++) {
-      if (abs(blk->TDC()->GetData(ih)-GoodTimeCut) < MinDiff) {
-	HitIndex = ih;
-	MinDiff = abs(blk->TDC()->GetData(ih)-GoodTimeCut);
-      }
+      if (std::abs(blk->TDC()->GetData(ih)-GoodTimeCut) < MinDiff) { //without std::abs, it doesn't work for kBig
+               HitIndex = ih;
+               MinDiff = abs(blk->TDC()->GetData(ih)-GoodTimeCut);
+           }
     }      
     blk->TDC()->SetGoodHit(HitIndex);
     GoodHit=1;
