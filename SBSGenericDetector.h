@@ -134,6 +134,7 @@ public:
 
   virtual void Clear( Option_t* opt="" );
 
+
   void SetModeADC(SBSModeADC::Mode mode);
   void SetModeTDC(SBSModeTDC::Mode mode) { fModeTDC = mode; }
   void SetDisableRefADC(Bool_t b) { fDisableRefADC = b; }

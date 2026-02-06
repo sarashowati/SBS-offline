@@ -1,4 +1,5 @@
 #include "SBSData.h"
+#include "DataType.h"
 #include "TMath.h"
 #include <iostream>
 #define SBS_ADC_MODE_SINGLE 0 //< Simple ADC with only integral

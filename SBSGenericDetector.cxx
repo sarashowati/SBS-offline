@@ -5,8 +5,12 @@
 //
 ////////////////////////////////////////////////////////////////////////////////
 
+#include "VarType.h"   // defines Data_t
+#include "DataType.h"      // <-- this must be before any THa/SBS includes
+#include "THaAnalysisObject.h"
+#include "THaDetectorBase.h"
+#include "SBSData.h"
 #include "SBSGenericDetector.h"
-
 #include "THaEvData.h"
 #include "THaDetMap.h"
 #include "VarDef.h"
@@ -22,10 +26,12 @@
 #include "Database.h"
 #include "THaApparatus.h"
 #include "TString.h"
-
+#include "TObject.h"
 #include <cstring>
 #include <iostream>
 #include <iomanip>
+
+
 
 ClassImp(SBSGenericDetector);
 
@@ -1436,7 +1442,7 @@ Int_t SBSGenericDetector::DecodeTDC( const THaEvData& evdata,
         }else if(le_count < te_count){//missing LE
             blk->TDC()->Process(elemID,kBig, 0.);
             le_count++;
-        }
+	}        }
       if (fModeTDC != SBSModeTDC::kTDCSimple && edge ==0 && ihit == nhit-1)  continue; // skip last hit if leading edge
       //if( edge == 0 && ihit == nhit-1 ) continue; //skip last hit if leading edge (AJRP note: it is not possible to get into this IF block if fModeTDC is "kTDCsimple". Thus the commented statement above always evaluates false and defeats its own intended logic.)
     
