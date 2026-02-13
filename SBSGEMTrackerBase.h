@@ -353,9 +353,10 @@ protected:
   bool fUseSlopeConstraint;
   double fxpfpmin, fxpfpmax;
   double fypfpmin, fypfpmax;
-TVector3 fAddPointPRgem; //add active analyzer position for 3 point tracking of 2 layers of PR gems
+
+  TVector3 fAddPointPRgem; //add active analyzer position for 3 point tracking of 2 layers of PR gems
+
   //FP track cuts: 
-  
   Double_t fSigma_hitpos;   //sigma parameter controlling resolution entering track chi^2 calculation
   
   //////////////////////////////////////////////////////////////////////////////////////////////////////////////////

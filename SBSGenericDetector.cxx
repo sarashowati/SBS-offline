@@ -1379,49 +1379,17 @@ Int_t SBSGenericDetector::DecodeTDC( const THaEvData& evdata,
     if(fModeTDC == SBSModeTDC::kTDCSimple) {
       UInt_t rawdata = evdata.GetData(d->crate, d->slot, chan, ihit);
       if (!IsRef && d->GetModel() == 6401) { // F1 TDC
-	// We know that if we are talking about the BB trigger, the reference time is "always" later than
-	// the F1 trigger time; therefore the signature of rollover is a large absolute difference between
-	// the raw data and the reference time. We know to always correct the reference time for rollover when
-	// the F1 trigger time exceeds the reference time. However, how and when should we correct the regular signals?
-	// The good raw signals typically arrive after the F1 trigger but before the reference time (I think)
-	// Every reference channel (including both RF and trigger) will be corrected for rollover IFF the F1 trigger time exceeds
-	// the raw TDC signal;
-
-	//do this calculation before rollover correction:
-	fF1TDCminraw = (rawdata < fF1TDCminraw) ? rawdata : fF1TDCminraw;
-	fF1TDCmaxraw = (rawdata > fF1TDCmaxraw) ? rawdata : fF1TDCmaxraw;
-
-	if ( abs(rawdata-reftime) > fF1_TimeWindow) { //If abs(rawdata - reftime)>13000 (in raw TDC units, or ~1.3 us)
-	  //std::cout << "Rollover detected, (rawdata,reftime)=(" << rawdata << ", " << reftime << ")" << std::endl;
-	  if (rawdata > reftime){ //In practice it appears that this condition rarely (if ever) occurs; by the time we get to this point of the code, the reftime has already been corrected for rollover if it occurs.
-	    //std::cout << "Adding rollover correction to REF time" << std::endl;
-	    reftime+=fF1_RollOver; // reference time rolled over before arrival of signal
-	  } else if(rawdata <= reftime){
-	    rawdata+=fF1_RollOver;
+	if ( abs(rawdata-reftime) > fF1_TimeWindow) { 
+	  if (rawdata > reftime){ reftime+=fF1_RollOver; // reference time rolled over before arrival of signal
+	  } else if(rawdata <= reftime){ rawdata+=fF1_RollOver;}
 	    //std::cout << "Adding rollover correction to RAW DATA" << std::endl;
 	  } 
 	}
-
-
-	
-	// std::cout << "Decoding F1 TDC w/o rollover corrections, (rawdata,reftime,trigtime,rawdata-reftime,rawdata-trigtime)=(" << rawdata << ", "
-	// 	  << reftime << ", " << evdata.GetRawData(d->crate, d->slot, chan, ihit)
-	// 	  << ", " << Int_t(rawdata)-Int_t(reftime) << ", " << Int_t(rawdata)-Int_t(evdata.GetRawData(d->crate, d->slot, chan, ihit)) << ")" << std::endl;
-	// std::cout << "F1 TDC raw (min,max,max-min)=(" << fF1TDCminraw << ", " << fF1TDCmaxraw << ", "
-	// 	  << fF1TDCmaxraw-fF1TDCminraw << ")" << std::endl;
-	
-      }
       UInt_t TrigTime = 0;
       Int_t LeadingEdge=0;
       if (d->GetModel() == 6401) {
 	TrigTime = evdata.GetRawData(d->crate, d->slot, chan, ihit); // for F1 "raw" is trigger time
 	if(IsRef && rawdata<TrigTime) rawdata+=fF1_RollOver; // rollover correction  Reftdc[i]
-	// if( blk->IsRFtime() && rawdata < TrigTime ){
-	//   //std::cout << "THE FOLLOWING IS RF TIME DATA: " << std::endl;
-	//   // std::cout << "Decoding F1 TDC w/o rollover corrections, (rawdata,reftime,trigtime,rawdata-reftime,rawdata-trigtime)=(" << rawdata << ", "
-	//   // 	    << reftime << ", " << evdata.GetRawData(d->crate, d->slot, chan, ihit)
-	//   // 	    << ", " << Int_t(rawdata)-Int_t(reftime) << ", " << Int_t(rawdata)-Int_t(evdata.GetRawData(d->crate, d->slot, chan, ihit)) << ")" << std::endl;
-	// }
       } else {
 	LeadingEdge=evdata.GetRawData(d->crate, d->slot, chan, ihit); // for other TDC "raw" is the leading edge bit
       }
@@ -1442,12 +1410,12 @@ Int_t SBSGenericDetector::DecodeTDC( const THaEvData& evdata,
         }else if(le_count < te_count){//missing LE
             blk->TDC()->Process(elemID,kBig, 0.);
             le_count++;
-	}        }
+	        }
       if (fModeTDC != SBSModeTDC::kTDCSimple && edge ==0 && ihit == nhit-1)  continue; // skip last hit if leading edge
       //if( edge == 0 && ihit == nhit-1 ) continue; //skip last hit if leading edge (AJRP note: it is not possible to get into this IF block if fModeTDC is "kTDCsimple". Thus the commented statement above always evaluates false and defeats its own intended logic.)
     
       blk->TDC()->Process(elemID,tdchit[ihit].rawtime - reftime, edge);
-    }
+  }   }
   
 
   return nhit;

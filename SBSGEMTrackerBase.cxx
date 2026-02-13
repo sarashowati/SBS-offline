@@ -126,6 +126,10 @@ SBSGEMTrackerBase::SBSGEMTrackerBase(){ //Set default values of important parame
   fdxpfpcut = 0.01;
   fdypfpcut = 0.01;
 
+
+  //add position of active analyzer as tracking point for PR gems
+  fAddPointPRgem.SetXYZ(0.,-0.524,0.);
+
   fUseTrigTime = false; 
 
   fSigmaTrackT0 = 5.0;

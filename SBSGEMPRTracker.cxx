@@ -316,8 +316,10 @@ void SBSGEMPRTracker::Clear( Option_t *opt ){
   THaNonTrackingDetector::Clear(opt);
 
   SBSGEMTrackerBase::Clear();
+  ClearConstraints();
 
   //fTrigTime = 0.0;
+  fclustering_done = false;
   
   for( auto& module: fModules ) {
     module->Clear(opt);
