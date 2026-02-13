@@ -34,3 +34,4 @@
 *~
 *.bak
 .*.swp
+build/
